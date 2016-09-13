@@ -16,17 +16,20 @@ img = double(imresize(img, [256 NaN], 'bilinear'));
 [nrows ncols colors] = size(img);
 
 % Figure/ground separation
+% using color to determine what is ground and what is figure
 ground = double(min(img,[],3)>110);
 foreground = double(ground==0);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Extract edges and orientations
-m = mean(img,3);
+m = mean(img,3); % getting intensities out, img has rgb
 dmdx = conv2(m, [-1 0 1; -2 0 2; -1 0 1], 'same');
-dmdy = conv2(m, [-1 0 1; -2 0 2; -1 0 1]', 'same');
+dmdy = conv2(m, [-1 0 1; -2 0 2; -1 0 1]', 'same'); % note this has a transpose
 
 % Edge strength
 mag = sqrt(dmdx.^2+dmdy.^2);
+
+% no edges at the borders
 mag(1:end,1)=0;
 mag(1,1:end)=0;
 mag(1:end,end)=0;
@@ -110,10 +113,10 @@ colormap(gray)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Initialize variables
-Nconstraints = nrows*ncols*20;
+Nconstraints = nrows*ncols*20; % why 20????
 Aij = zeros([3 3 Nconstraints]);
-ii = zeros([Nconstraints 1]);
-jj = zeros([Nconstraints 1]);
+ii = zeros([Nconstraints 1]); %% records x pixel val of this constraint
+jj = zeros([Nconstraints 1]); %% records y pixel val of this constraint
 b = zeros([Nconstraints 1]);
 
 V = zeros([nrows ncols]);
@@ -158,12 +161,16 @@ for i = 2:nrows-1
                 Aij(:,:,c) = [-1 -2 -1; 0 0 0; 1 2 1]/8;
                 ii(c) = i; 
                 jj(c) = j;
-                b(c)  = 1/cos(alpha);
+                b(c)  = 1/cos(alpha); % here alpha is really theta in the notes
             end
             if horizontalsum>0 && groundsum==0 && vericalsum==0
-                % dY/dt = 0
+                % dY/dt = 0, derivative along the line
+                % nx = dx, ny = dy
+                % so tangent vector is t = (-ny, nx)
                 c = c+1; % increment constraint counter
-                Aij(:,:,c) = !!!! FILL MISSING KERNEL HERE;
+                dyKernel = [0 0 0; 0 -1 0; 0 1 0];
+                dxKernel = [0 0 0; -1 1 0; 0 0 0];
+                Aij(:,:,c) = -dy*dxKernel + dx*dyKernel; %!!!! FILL MISSING KERNEL HERE;
                 ii(c) = i; 
                 jj(c) = j;
                 b(c)  = 0;
@@ -171,18 +178,21 @@ for i = 2:nrows-1
             if groundsum==0
                 % laplacian = 0
                 c = c+1; % increment constraint counter 
+                % d^2 Y / dx^2
                 Aij(:,:,c) = 0.1*[0 0 0; -1 2 -1; 0 0 0]; % (0.1 is a weight to reduce the strength of this constraint)
                 ii(c) = i; 
                 jj(c) = j;
                 b(c) = 0;
                 
                 c = c+1; % increment constraint counter
-                Aij(:,:,c) = !!!! FILL MISSING KERNEL HERE;
+                % d^2 Y / dy^2
+                Aij(:,:,c) = 0.1*[0 -1 0; 0 2 0; 0 -1 0]; %!!!! FILL MISSING KERNEL HERE;
                 ii(c) = i; 
                 jj(c) = j;
                 b(c) = 0;
                 
                 c = c+1; % increment constraint counter
+                % presumably this is the cross derivative term d^2 Y/dx dy
                 Aij(:,:,c) = 0.1*[0 -1 1; 0 1 -1; 0 0 0];
                 ii(c) = i; 
                 jj(c) = j;
@@ -211,7 +221,7 @@ y = (y-nrows/2);
 
 X = x;
 Z = Y*cos(alpha)/sin(alpha) -  y/sin(alpha);
-Y = -Y;
+Y = -Y; % why do we do this?
 
 Y(Y<0)=0;
 
@@ -240,9 +250,27 @@ E = double(occlusion_edges);
 E (find(E))=NaN;
 Z = Z+E; % remove occluded edges
 
+% render from a different viewpoint
+az = 37.5;
+el=30
+
 figure
-surf(X(2:end-1, 2:end-1),Z(2:end-1, 2:end-1),Y(2:end-1, 2:end-1), double(img(2:end-1, 2:end-1, :))/256)
+surf(X(2:end-1, 2:end-1),Z(2:end-1, 2:end-1),Y(2:end-1, 2:end-1), double(img(2:end-1, 2:end-1, :))/256);
 axis('equal')
+% view(az,el); uncomment if you want to render from a different viewpoint
+shading flat
+
+%% Render another view
+figure
+surf(X(2:end-1, 2:end-1),Z(2:end-1, 2:end-1),Y(2:end-1, 2:end-1), double(img(2:end-1, 2:end-1, :))/256);
+axis('equal')
+view(37.5,el);
+shading flat
+
+figure
+surf(X(2:end-1, 2:end-1),Z(2:end-1, 2:end-1),Y(2:end-1, 2:end-1), double(img(2:end-1, 2:end-1, :))/256);
+axis('equal')
+view(0,el);
 shading flat
 
 
