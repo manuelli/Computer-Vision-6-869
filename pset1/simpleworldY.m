@@ -10,7 +10,7 @@ alpha = 35*pi/180;
 
 
 %% Load image
-img = imread('img1.jpg');
+img = imread('img3.jpg');
 
 img = double(imresize(img, [256 NaN], 'bilinear'));
 [nrows ncols colors] = size(img);
@@ -150,7 +150,10 @@ for i = 2:nrows-1
             if contact_edges(i,j)==1
                 % dY/dy = 0
                 c = c+1;   % increment constraint counter
+                
+                % this is actually reversed I think
                 Aij(:,:,c) = [0 0 0; 0 1 0; 0 -1 0]; % kernel
+                
                 ii(c) = i; % image location
                 jj(c) = j;
                 b(c)  = 0; % desired output
