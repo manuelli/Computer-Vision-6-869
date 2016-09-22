@@ -36,10 +36,35 @@ imshow(maradona_mean/255.0);
 
 filterOrder = 250;
 h = HybridImage(messi_mean, maradona_mean);
-d = h.createHybridImage(filterOrder);
+% d = h.createHybridImage(filterOrder);
 
 %%
 
-fig = figure(2);
-clf(fig);
-imshow(d.normalizedHybridImage/255.0)
+filterOrderArray = [50,100,250,500];
+filterOrderArray = [25,250,500];
+% filterOrderArray = [25,50];
+
+figCounter = 2;
+
+fig = figure(2)
+numFilters = numel(filterOrderArray);
+
+for i=1:numel(filterOrderArray)
+  fig = figure(i);
+  clf(fig);
+  % subplot(numFilters,1,i);
+  filterOrder = filterOrderArray(i);
+  d = h.createHybridImage(filterOrder);
+  sigmaVal = filterOrder/4.0;
+  imshow(d.clippedHybridImage/255.0)
+  title(strcat('sigma = ',num2str(sigmaVal)));
+end
+
+
+% fig = figure(2);
+% clf(fig);
+% imshow(d.normalizedHybridImage/255.0)
+
+% fig = figure(3);
+% clf(fig);
+% imshow(d.clippedHybridImage/255.0)

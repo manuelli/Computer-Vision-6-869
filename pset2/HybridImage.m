@@ -26,6 +26,7 @@ classdef HybridImage
       d.hybridImage = hybridImage;
 
       d.normalizedHybridImage = CVUtils.rescaleMatrix(hybridImage, 0, 255.01);
+      d.clippedHybridImage = CVUtils.clip(hybridImage,0,255.0);
     end
   end
 
