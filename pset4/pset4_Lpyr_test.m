@@ -34,6 +34,15 @@ filterType = gaussFilter;
 mask = 0*apple_mean;
 halfCols = floor(size(mask,2)/2.0);
 mask(:,1:halfCols) = 1;
+% blur the mask before applying it
+
+
+bf = binomialFilter(250);
+h = conv2(bf', bf);
+% mask = conv2(mask, h, 'same');
+
+mask = conv2(mask, bf', 'same');
+
 
 
 binomFilter = namedFilter('binom10');
@@ -44,37 +53,44 @@ size(pind_mask)
 % reconstruct img1 from pyramid
 recon_1 = reconLpyr(pyr_1,pind_1);
 
+
+
+filterType = 'binom5'
 blendResult = PyrBlend(apple_mean, orange_mean, mask, filterType);
 
 
-%% Plotting
 
+
+
+% %% Plotting
+close all
 fig = figure(1);
 clf(fig);
-showLpyr(pyr_1, pind_1);
+imshow(mask);
+% showLpyr(pyr_1, pind_1);
 
-% res = pyrBand(pyr, pind, 1);
+% % res = pyrBand(pyr, pind, 1);
 
 fig = figure(2);
 clf(fig);
 imshow(blendResult/255.0);
-% 
-% fig = figure(3);
+% % 
+% % fig = figure(3);
+% % clf(fig);
+% % imshow(orange_mean/255.0);
+
+
+% fig = figure(4);
 % clf(fig);
-% imshow(orange_mean/255.0);
+% imshow(maskBand);
 
 
-fig = figure(4);
-clf(fig);
-imshow(maskBand);
+% %% Gaussian window thing
 
-
-%% Gaussian window thing
-
-fig = figure(5);
-clf(fig);
-hold on;
-grid = 1:length(gaussFilter);
-plot(gaussFilter','r');
-plot(binomFilter', 'b');
-hold off;
+% fig = figure(5);
+% clf(fig);
+% hold on;
+% grid = 1:length(gaussFilter);
+% plot(gaussFilter','r');
+% plot(binomFilter', 'b');
+% hold off;

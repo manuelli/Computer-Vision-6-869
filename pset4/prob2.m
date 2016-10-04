@@ -2,7 +2,7 @@ img = imread('prob2.jpg');
 img = double(img);
 
 img_mean = mean(img,3);
-height = 10
+height = 5
 % height = 'auto'
 [pyr, pind] = buildLpyr(img_mean, height);
 
@@ -30,7 +30,7 @@ pyr_copy(lowPassResidIdx) = valToSet;
 recon = reconLpyr(pyr_copy, pind);
 % rescale it
 recon = recon - min(recon(:));
-
+recon = recon/max(recon(:))*255.0;
 
 % squared error
 delta = recon(:) - img_mean(:);
