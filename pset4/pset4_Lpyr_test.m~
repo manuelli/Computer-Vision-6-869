@@ -1,0 +1,79 @@
+img = imread('prob2.jpg');
+img = double(img);
+
+orange = imread('orange_cropped.jpg');
+orange = double(orange);
+
+apple = imread('apple_cropped.jpg');
+apple = double(apple);
+
+orange_size = size(orange);
+
+% resize apple to be same size as orange
+apple = double(imresize(apple, orange_size(1:2), 'bilinear'));
+
+% do everything in grey scale
+apple_mean = mean(apple,3);
+orange_mean = mean(orange, 3);
+
+
+orange_mean = orange_mean*mean(orange_mean(:))/(mean(appl
+
+[pyr_1, pind_1] = buildLpyr(apple_mean);
+[pyr_2, pind_2] = buildLpyr(orange_mean);
+
+
+mask = 0*apple_mean;
+halfCols = floor(size(mask,2)/2.0);
+mask(:,1:halfCols) = 1;
+
+
+
+L = 5;
+alpha = 1;
+gaussFilter = gausswin(L, alpha);
+gaussFilter = gaussFilter/sum(gaussFilter);
+
+binomFilter = binomialFilter(5);
+
+[pyr_mask, pind_mask] = buildGpyr(mask,'auto', gaussFilter);
+maskBand = pyrBand(pyr_mask, pind_mask, 2);
+size(pind_mask)
+% reconstruct img1 from pyramid
+recon_1 = reconLpyr(pyr_1,pind_1);
+
+blendResult = PyrBlend(apple_mean, apple_mean);
+
+
+%% Plotting
+
+fig = figure(1);
+clf(fig);
+% showLpyr(pyr_1, pind_1);
+imshow(blendResult/255.0);
+
+% res = pyrBand(pyr, pind, 1);
+
+fig = figure(2);
+clf(fig);
+imshow(apple_mean/255.0);
+
+fig = figure(3);
+clf(fig);
+imshow(orange_mean/255.0);
+
+
+fig = figure(4);
+clf(fig);
+imshow(maskBand);
+
+
+%% Gaussian window thing
+
+fig = figure(5);
+clf(fig);
+hold on;
+grid = 1:length(gaussFilter);
+plot(gaussFilter','r');
+plot(binomFilter', 'b');
+hold off;
